@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "mysql": "^2.13.0",
     "shopify-api-node": "^2.4.0"
   },
   "devDependencies": {},

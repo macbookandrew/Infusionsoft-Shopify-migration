@@ -1,0 +1,15 @@
+var config = {
+    shopify: {
+        shopName: 'your-store-name.myshopify.com',
+        apiKey: 'your API key',
+        password: 'your API password'
+    },
+    mysql: {
+        host: 'localhost',
+        database: 'database name',
+        username: 'user name',
+        password: 'password'
+    }
+}
+
+module.exports = config;
