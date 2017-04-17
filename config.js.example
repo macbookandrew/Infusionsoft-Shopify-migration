@@ -2,7 +2,8 @@ var config = {
     shopify: {
         shopName: 'your-store-name.myshopify.com',
         apiKey: 'your API key',
-        password: 'your API password'
+        password: 'your API password',
+        callCycle: 500 // milliseconds
     },
     mysql: {
         host: 'localhost',
