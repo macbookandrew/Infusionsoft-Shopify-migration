@@ -13,4 +13,5 @@ ALTER TABLE infusionsoft_contacts
     CHANGE `Last Updated` `Last Updated` DATETIME DEFAULT NULL,
     CHANGE `Date Added` `Date Added` DATETIME DEFAULT NULL,
     CHANGE `Dateof Last Followup` `Dateof Last Followup` DATETIME DEFAULT NULL,
-    CHANGE `Date Entered` `Date Entered` DATETIME DEFAULT NULL;
+    CHANGE `Date Entered` `Date Entered` DATETIME DEFAULT NULL,
+    ADD COLUMN `shopify_id` int(11) DEFAULT NULL AFTER Id;
