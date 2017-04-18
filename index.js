@@ -74,3 +74,25 @@ var formatAddresses = function(row) {
     delete row.address2_country;
     return row;
 }
+
+/**
+ * Send customer data to Shopify API
+ * @param   {JSON} customerJSON JSON object with customer data
+ * @returns {JSON} response from Shopify API
+ */
+var sendCustomersToAPI = function(customerJSON) {
+    console.log(customerJSON);
+    Shopify.post('/admin/customers.json', customerJSON, function(error, data, headers) {
+        if (error) {
+            console.error(error);
+        } else {
+            console.log('shopify ID: ');console.log(data.customer.id);
+            console.log('update query: UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+data.customer.id+'" WHERE `Id` = "'+row.Id+'"');
+            var customerUpdate = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+data.customer.id+'" WHERE `Id` = "'+row.Id+'"', function(err, data) {
+                if (err) throw err;
+                console.log('update results: ');console.log(data);
+            });
+        }
+        return data;
+    });
+}
