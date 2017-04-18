@@ -96,3 +96,4 @@ var sendCustomersToAPI = function(customerJSON) {
         return data;
     });
 }
+//TODO: update customer last_order_id with latest Shopify order ID
