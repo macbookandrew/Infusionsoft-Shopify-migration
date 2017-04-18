@@ -1,13 +1,16 @@
 var config = {
     general: {
+        queryLimit: 10, // how many rows to limit the MySQL query to
         timezone: '-05:00' // timezone of Infusionsoft customers/orders relative to UTC; example: -04:00
-        queryLimit: 10 // how many rows to limit the MySQL query to
     },
     shopify: {
         shopName: 'your-store-name', // your subdomain only
         apiKey: 'your API key',
         password: 'your API password',
-        callCycle: 500 // time in milliseconds to wait between API calls; see https://help.shopify.com/api/getting-started/api-call-limit
+        autoLimit: {
+            calls: 2, // number of calls per interval below
+            interval: 1000 // specified in milliseconds
+        }
     },
     mysql: {
         host: 'localhost',

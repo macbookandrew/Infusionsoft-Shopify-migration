@@ -11,7 +11,8 @@ var config = require('./config'),
     shopify = new Shopify({
         shopName:   config.shopify.shopName,
         apiKey:     config.shopify.apiKey,
-        password:   config.shopify.password
+        password:   config.shopify.password,
+        autoLimit:  config.shopify.autoLimit
     }),
     json = '';
 
