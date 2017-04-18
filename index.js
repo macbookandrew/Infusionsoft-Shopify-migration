@@ -7,15 +7,30 @@ var config = require('./config'),
         password:    config.mysql.password,
         database:    config.mysql.database
     }),
-    json = '';
     shopifyAPI = require('shopify-node-api'),
     Shopify = new shopifyAPI(config.shopify),
+    databaseQueryString = 'SELECT `contacts`.`First Name` AS first_name, `contacts`.`Last Name` AS last_name, `contacts`.`Email` AS email, REPLACE(REPLACE(`Phone 1`, "    (Mobile)", ""), "    (Work)", "") AS phone, "true" AS verified_email, "true" as accepts_marketing, COUNT(`orders`.`Id`) AS orders_count, SUM(`orders`.`Order Total`) AS total_spent, DATE_FORMAT(`Date Created`, "%Y-%m-%dT%T'+config.general.timezone+'") AS created_at, DATE_FORMAT(`Last Updated`, "%Y-%m-%dT%T'+config.general.timezone+'") AS updated_at, `contacts`.`Street Address 1` AS address1_address1, `contacts`.`Street Address 2` AS address1_address2, `contacts`.`City` AS address1_city, `contacts`.`State` AS address1_state, `contacts`.`Postal Code` AS address1_zip, `contacts`.`Country` AS address1_country, `contacts`.`Street Address 1 (Shipping)` AS address2_address1, `contacts`.`Street Address 2 (Shipping)` AS address2_address2, `contacts`.`City (Shipping)` AS address2_city, `contacts`.`State (Shipping)` AS address2_state, `contacts`.`Postal Code (Shipping)` AS address2_zip, `contacts`.`Country (Shipping)` AS address2_country, `contacts`.`Id` AS infusionsoft_id FROM `infusionsoft_contacts` `contacts` JOIN `infusionsoft_orders` `orders` on `orders`.`contactId` = `contacts`.`Id` WHERE `contacts`.`shopify_id` IS NULL GROUP BY `contacts`.`Id` LIMIT '+config.general.queryLimit+';';
+global.customerData = [];
 
 localDatabase.connect();
 
-localDatabase.query('SELECT `Name` from infusionsoft_contacts LIMIT 10', function (error, results, fields) {
-    if (error) throw error;
-    console.log(results);
+var customerQuery = localDatabase.query(databaseQueryString);
+customerQuery.on('error', function(error) {
+    console.error(error);
+});
+customerQuery.on('result', function(row) {
+    localDatabase.pause();
+    global.customerData.push(formatAddresses(row));
+    localDatabase.resume();
+});
+customerQuery.on('end', function() {
+    for (i in global.customerData) {
+        customerJSON = JSON.stringify({
+            "customer": global.customerData[i]
+        });
+        sendCustomersToAPI(customerJSON);
+    }
+
 });
 
 localDatabase.end();
