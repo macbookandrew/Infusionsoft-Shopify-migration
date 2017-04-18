@@ -1,19 +1,19 @@
+// set up variables and MySQL
 var config = require('./config'),
     mysql = require('mysql'),
     localDatabase = mysql.createConnection({
-        host        : config.mysql.host,
-        user        : config.mysql.username,
-        password    : config.mysql.password,
-        database    : config.mysql.database
-    });
-
-const Shopify = require('shopify-api-node');
-
-const shopify = new Shopify({
-  shopName: config.shopify.shopName,
-  apiKey: config.shopify.apiKey,
-  password: config.shopify.password
-});
+        host:        config.mysql.host,
+        user:        config.mysql.username,
+        password:    config.mysql.password,
+        database:    config.mysql.database
+    }),
+    Shopify = require('shopify-api-node'), // see https://github.com/MONEI/Shopify-api-node#available-resources-and-methods
+    shopify = new Shopify({
+        shopName:   config.shopify.shopName,
+        apiKey:     config.shopify.apiKey,
+        password:   config.shopify.password
+    }),
+    json = '';
 
 localDatabase.connect();
 
