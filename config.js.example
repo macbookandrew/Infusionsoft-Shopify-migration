@@ -15,7 +15,7 @@ var config = {
     mysql: {
         host: 'localhost',
         database: 'database name',
-        username: 'user name',
+        user: 'user name',
         password: 'password'
     }
 }
