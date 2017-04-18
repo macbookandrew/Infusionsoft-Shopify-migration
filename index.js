@@ -7,14 +7,9 @@ var config = require('./config'),
         password:    config.mysql.password,
         database:    config.mysql.database
     }),
-    Shopify = require('shopify-api-node'), // see https://github.com/MONEI/Shopify-api-node#available-resources-and-methods
-    shopify = new Shopify({
-        shopName:   config.shopify.shopName,
-        apiKey:     config.shopify.apiKey,
-        password:   config.shopify.password,
-        autoLimit:  config.shopify.autoLimit
-    }),
     json = '';
+    shopifyAPI = require('shopify-node-api'),
+    Shopify = new shopifyAPI(config.shopify),
 
 localDatabase.connect();
 
