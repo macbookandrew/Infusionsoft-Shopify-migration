@@ -73,9 +73,12 @@ var formatAddresses = function(row) {
  */
 var sendCustomersToAPI = function(customerObject, callback) {
     Shopify.post('/admin/customers.json', customerObject, function(error, data, headers) {
-        if (error) console.error(error);
-        console.info('added to Shopify: ');console.log(data.customer.email);
-        callback(customerObject, data);
+        if (error) {
+            console.error(error);
+        } else {
+            console.info('added to Shopify: ');console.log(data.customer.email);
+            callback(customerObject, data);
+        }
     });
 }
 
