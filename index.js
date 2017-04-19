@@ -14,18 +14,11 @@ customerQuery.on('error', function(error) {
     console.error(error);
 });
 customerQuery.on('result', function(row) {
-    global.customerData.push(formatAddresses(row));
+    customerObject = {
+        "customer": formatAddresses(row)
+    };
+    sendCustomersToAPI(customerObject, saveCustomerData);
 });
-customerQuery.on('end', function() {
-    for (i in global.customerData) {
-        customerObject = {
-            "customer": global.customerData[i]
-        };
-        sendCustomersToAPI(customerObject, updateLocalDatabase);
-    }
-
-});
-
 localDatabase.end();
 
 /**
@@ -76,8 +69,24 @@ var formatAddresses = function(row) {
 var sendCustomersToAPI = function(customerObject, callback) {
     Shopify.post('/admin/customers.json', customerObject, function(error, data, headers) {
         if (error) console.error(error);
+        console.info('added to Shopify: ');console.log(data.customer.email);
         callback(customerObject, data);
     });
+}
+
+/**
+ * Match Infusionsoft and Shopify customer IDs
+ * @param {object} infusionsoftData Infusionsoft contact data
+ * @param {object} shopifyData      Shopify customer data
+ */
+var saveCustomerData = function(infusionsoftData, shopifyData) {
+    var infusionsoftId = infusionsoftData.customer.infusionsoft_id,
+        shopifyId = shopifyData.customer.id;
+    global.customerData.push({
+        "infusionsoftId": infusionsoftId,
+        "shopifyId": shopifyId
+    });
+    console.log(global.customerData);
 }
 
 /**
