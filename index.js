@@ -14,16 +14,14 @@ customerQuery.on('error', function(error) {
     console.error(error);
 });
 customerQuery.on('result', function(row) {
-    localDatabase.pause();
     global.customerData.push(formatAddresses(row));
-    localDatabase.resume();
 });
 customerQuery.on('end', function() {
     for (i in global.customerData) {
-        customerJSON = JSON.stringify({
+        customerObject = {
             "customer": global.customerData[i]
-        });
-        sendCustomersToAPI(customerJSON);
+        };
+        sendCustomersToAPI(customerObject, updateLocalDatabase);
     }
 
 });
@@ -72,23 +70,22 @@ var formatAddresses = function(row) {
 
 /**
  * Send customer data to Shopify API
- * @param   {JSON} customerJSON JSON object with customer data
- * @returns {JSON} response from Shopify API
+ * @param   {object} customerObject object containing customer data
+ * @returns {JSON}   response from Shopify API
  */
-var sendCustomersToAPI = function(customerJSON) {
-    console.log(customerJSON);
-    Shopify.post('/admin/customers.json', customerJSON, function(error, data, headers) {
-        if (error) {
-            console.error(error);
-        } else {
-            console.log('shopify ID: ');console.log(data.customer.id);
-            console.log('update query: UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+data.customer.id+'" WHERE `Id` = "'+row.Id+'"');
-            var customerUpdate = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+data.customer.id+'" WHERE `Id` = "'+row.Id+'"', function(err, data) {
-                if (err) throw err;
-                console.log('update results: ');console.log(data);
-            });
-        }
-        return data;
+var sendCustomersToAPI = function(customerObject, callback) {
+    Shopify.post('/admin/customers.json', customerObject, function(error, data, headers) {
+        if (error) console.error(error);
+        callback(customerObject, data);
     });
 }
+
+/**
+ * Update local database
+ * @param {object} infusionsoftData Infusionsoft contact data
+ * @param {object} shopifyData      Shopify customer data
+ */
+var updateLocalDatabase = function(infusionsoftData, shopifyData) {
+}
+
 //TODO: update customer last_order_id with latest Shopify order ID
