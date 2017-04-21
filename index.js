@@ -1,5 +1,7 @@
 // set up variables and MySQL
 var config = require('./config'),
+    events = require('events'),
+    eventEmitter = new events.EventEmitter()
     mysql = require('mysql'),
     localDatabase = mysql.createConnection(config.mysql),
     shopifyAPI = require('shopify-node-api'),
@@ -12,7 +14,6 @@ global.customerData = [];
  * @param {object} database MySQL database connection
  */
 var getCustomerData = function(database) {
-    database.connect();
     var customerQuery = localDatabase.query(databaseQueryString);
     customerQuery.on('error', function(error) {
         console.error(error);
@@ -21,9 +22,8 @@ var getCustomerData = function(database) {
         customerObject = {
             "customer": formatAddresses(row)
         };
-        sendCustomersToAPI(customerObject, saveCustomerData);
+        sendCustomersToAPI(customerObject);
     });
-    database.end();
 }
 
 /**
@@ -71,40 +71,58 @@ var formatAddresses = function(row) {
  * @param   {object} customerObject object containing customer data
  * @returns {JSON}   response from Shopify API
  */
-var sendCustomersToAPI = function(customerObject, callback) {
+var sendCustomersToAPI = function(customerObject) {
     Shopify.post('/admin/customers.json', customerObject, function(error, data, headers) {
         if (error) {
             console.error(error);
         } else {
             console.info('added to Shopify: ');console.log(data.customer.email);
-            callback(customerObject, data);
+            eventEmitter.emit('shopifyAdded', customerObject, data);
         }
     });
 }
 
 /**
- * Match Infusionsoft and Shopify customer IDs
- * @param {object} infusionsoftData Infusionsoft contact data
- * @param {object} shopifyData      Shopify customer data
+ * Update customer data in local database
+ * @param {object} database MySQL database connection
  */
-var saveCustomerData = function(infusionsoftData, shopifyData) {
-    var infusionsoftId = infusionsoftData.customer.infusionsoft_id,
-        shopifyId = shopifyData.customer.id;
-    global.customerData.push({
-        "infusionsoftId": infusionsoftId,
-        "shopifyId": shopifyId
-    });
-    console.log(global.customerData);
+var updateLocalCustomerData = function(customerObject, shopifyData) {
+    if (customerObject && shopifyData) {
+        var infusionsoftId = customerObject.customer.infusionsoft_id,
+            shopifyId = shopifyData.customer.id,
+            updateCustomer = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+shopifyId+'" WHERE `Id` = "'+infusionsoftId+'"');
+        updateCustomer.on('error', function(error) {
+            console.error(error);
+        });
+        updateCustomer.on('result', function(row) {
+            console.log('Customer '+infusionsoftId+' updated with Shopify ID '+shopifyId+'.');
+        });
+    }
 }
 
 /**
- * Update local database
- * @param {object} infusionsoftData Infusionsoft contact data
- * @param {object} shopifyData      Shopify customer data
+ * Clean up connections when exiting
+ * @param {object} error   error
+ * @param {object} options options
  */
-var updateLocalDatabase = function(infusionsoftData, shopifyData) {
+var exitHandler = function(error, options) {
+    localDatabase.end();
+    if (options.cleanup) {
+        console.log('clean');
+    }
+    if (error) {
+        console.error(error.stack);
+    }
+    if (options.exit) {
+        process.exit();
+    }
 }
 
 //TODO: update customer last_order_id with latest Shopify order ID
 
+localDatabase.connect();
 getCustomerData(localDatabase);
+eventEmitter.on('shopifyAdded', function(customerObject, data) {
+    updateLocalCustomerData(customerObject, data)
+});
+process.on('exit', exitHandler.bind(null, {cleanup: true}));
