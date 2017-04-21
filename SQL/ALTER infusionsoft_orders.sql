@@ -4,4 +4,5 @@ UPDATE infusionsoft_orders SET `Order Date` = STR_TO_DATE(`Order Date`, '%c/%e/%
 ALTER TABLE infusionsoft_orders
     CHANGE `Order Date` `Order Date` date DEFAULT NULL
     CHANGE `Order Total` `Order Total` float(6,2) DEFAULT NULL,
-    ADD COLUMN `shopify_id` BIGINT(20) DEFAULT NULL AFTER Id;
+    ADD COLUMN `shopify_id` BIGINT(20) DEFAULT NULL AFTER `Id`,
+    ADD COLUMN `shopify_notes` BLOB DEFAULT NULL AFTER `shopify_id`;
