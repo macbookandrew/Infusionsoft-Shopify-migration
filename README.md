@@ -1,6 +1,6 @@
 # Introduction
 
-A helper utility to copy Infusionsoft contacts and orders history to Shopify.
+A helper utility to copy Infusionsoft contacts and their order history to Shopify. It ignores Infusionsoft contacts who do not have orders associated with their contact ID.
 
 It also optionally pulls info from a WooCommerce installation, as long as the same database contains these fields:
 
@@ -21,9 +21,9 @@ It also optionally pulls info from a WooCommerce installation, as long as the sa
 0. Create the products in Shopify with variants and SKUs as appropriate
 1. Export all contacts, orders, and products from Infusionsoft
 2. Import into MySQL
-    a. Run all the `CREATE…` SQL files; modify custom field names as needed
+    a. Run all the `SQL/CREATE…` SQL files; modify custom field names as needed
     b. Import the CSV files exported from Infusionsoft
-    c. Run all the `ALTER…` SQL files to clean up the data a bit
+    c. Run all the `SQL/ALTER…` SQL files to clean up the data a bit
 3. Copy `config.js.example` to `config.js` and add your Shopify API information
 4. Create a private app in your Shopify account and grant it these permissions *at a minimum*:
     1. Read and write
@@ -38,11 +38,15 @@ It also optionally pulls info from a WooCommerce installation, as long as the sa
         1. Store content like articles, blogs, comments, pages, and redirects
 5. Run `$ npm install` to set up all the dependencies
 6. Run `$ node products.js` to match up your Infusionsoft products with Shopify products
-7. Run `$ node customers.js` to start the customer import
     - Optionally, run the `woocommerce.sql` SQL file if you have WooCommerce products to add, and then manually add the WooCommerce product and variation IDs to the `infusionsoft_products` table.
+7. Run `$ node customers.js` to start importing customers. I recommend you keep the `config.general.queryLimit` parameter fairly low (5–10) and run the script once or twice and double-check the results. Then bump it up to a few hundred or thousand and run as many times as necessary to finish importing all your contacts.
+8. Go back through the `infusionsoft_contacts` database and fix everything you can in the `shopify_notes` field, and then re-run `$ node customers.js` to finish importing customers.
+    - Take a look at `SQL/suggested-cleanup.sql` as for some suggested cleanup actions, and then manually fix other issues you see in your database.
 
 # Notes
 
 Due to this being my first Node project, there are a few quirks that I know of, and possibly (likely) some of which I’m unaware.
 
-- The files do not exit when finished with all operations; they just stop and there’s no more output. Press control-C to stop and re-run as necessary.
+- Use at your own risk. I cannot offer any support for this utility or anything it may do to your Shopify store or local database.
+- The files do not exit when finished with all operations; they just stop with no more output. However, `node`’s CPU usage will drop to 0 when finished. Press control-C to kill node and then re-run as necessary.
+- Bumping `config.general.queryLimit` up to 10000 causes “too many files open on the system” errors. 5000 seems to be a reasonable number.
