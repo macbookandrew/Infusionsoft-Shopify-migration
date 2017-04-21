@@ -74,10 +74,31 @@ var formatAddresses = function(row) {
 var sendCustomersToAPI = function(customerObject) {
     Shopify.post('/admin/customers.json', customerObject, function(error, data, headers) {
         if (error) {
-            console.error(error);
+            if (error.code == 422 && error.error.email && error.error.email[0] == 'has already been taken') {
+                eventEmitter.emit('shopifyDuplicateEmail', customerObject);
+            } else {
+                eventEmitter.emit('shopifyOtherError', customerObject, data);
+            }
         } else {
-            console.info('added to Shopify: ');console.log(data.customer.email);
-            eventEmitter.emit('shopifyAdded', customerObject, data);
+            console.info('added to Shopify: '+data.customer.email);
+            eventEmitter.emit('shopifyAdded', customerObject, data.customer);
+        }
+    });
+}
+
+/**
+ * Get Shopify ID for a given email address
+ * @param {object} customerObject object containing customer data
+ */
+var getShopifyId = function(customerObject) {
+    var customerEmail = {
+        "query": "email:"+customerObject.customer.email
+    };
+    Shopify.get('/admin/customers/search.json', customerEmail, function(error, data, headers) {
+        if (error) {
+            console.log('Can’t get customer by email address; error: ');console.error(error);
+        } else {
+            eventEmitter.emit('shopifyAdded', customerObject, data.customers[0]);
         }
     });
 }
@@ -87,16 +108,35 @@ var sendCustomersToAPI = function(customerObject) {
  * @param {object} customerObject customer data from MySQL
  * @param {object} shopifyData    customer data from Shopify
  */
-var updateLocalCustomerData = function(customerObject, shopifyData) {
-    if (customerObject && shopifyData) {
+var updateLocalCustomerData = function(customerObject, shopifyCustomer) {
+    if (customerObject && shopifyCustomer) {
         var infusionsoftId = customerObject.customer.infusionsoft_id,
-            shopifyId = shopifyData.customer.id,
+            shopifyId = shopifyCustomer.id,
             updateCustomer = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+shopifyId+'" WHERE `Id` = "'+infusionsoftId+'"');
         updateCustomer.on('error', function(error) {
             console.error(error);
         });
         updateCustomer.on('result', function(row) {
             console.log('Customer '+infusionsoftId+' updated with Shopify ID '+shopifyId+'.');
+        });
+    }
+}
+
+/**
+ * Add Shopify error note
+ * @param {object} customerObject customer data from MySQL
+ * @param {object} shopifyData    customer data from Shopify
+ */
+var addShopifyErrorNote = function(customerObject, shopifyData) {
+    console.log('error note: ');console.log(JSON.stringify(shopifyData));
+    if (customerObject && shopifyData) {
+        var infusionsoftId = customerObject.customer.infusionsoft_id,
+            updateCustomer = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_notes` = "'+localDatabase.escape(JSON.stringify(shopifyData))+'" WHERE `Id` = "'+infusionsoftId+'"');
+        updateCustomer.on('error', function(error) {
+            console.error(error);
+        });
+        updateCustomer.on('result', function(row) {
+            console.log('Customer '+infusionsoftId+' updated with Shopify error notes.');
         });
     }
 }
@@ -123,7 +163,14 @@ var exitHandler = function(error, options) {
 
 localDatabase.connect();
 getCustomerData(localDatabase);
-eventEmitter.on('shopifyAdded', function(customerObject, data) {
-    updateLocalCustomerData(customerObject, data)
+eventEmitter.on('shopifyAdded', function(customerObject, shopifyCustomer) {
+    updateLocalCustomerData(customerObject, shopifyCustomer)
 });
+eventEmitter.on('shopifyDuplicateEmail', function(customerObject) {
+    getShopifyId(customerObject);
+});
+eventEmitter.on('shopifyOtherError', function(customerObject, data) {
+    addShopifyErrorNote(customerObject, data);
+});
+
 process.on('exit', exitHandler.bind(null, {cleanup: true}));
