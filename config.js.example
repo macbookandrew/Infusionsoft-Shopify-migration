@@ -16,7 +16,8 @@ var config = {
         host: 'localhost',
         database: 'database name',
         user: 'user name',
-        password: 'password'
+        password: 'password',
+        wpPrefix: 'wp_' // WordPress table prefix, if using the WooCommerce import script
     }
 }
 

@@ -2,6 +2,13 @@
 
 A helper utility to copy Infusionsoft contacts and orders history to Shopify.
 
+It also optionally pulls info from a WooCommerce installation, as long as the same database contains these fields:
+
+- `wp_posts`
+- `wp_postmeta`
+- `wp_woocommerce_order_items`
+- `wp_woocommerce_order_itemmeta`
+
 # Requirements
 
 - Infusionsoft
@@ -32,6 +39,7 @@ A helper utility to copy Infusionsoft contacts and orders history to Shopify.
 5. Run `$ npm install` to set up all the dependencies
 6. Run `$ node products.js` to match up your Infusionsoft products with Shopify products
 7. Run `$ node customers.js` to start the customer import
+    - Optionally, run the `woocommerce.sql` SQL file if you have WooCommerce products to add, and then manually add the WooCommerce product and variation IDs to the `infusionsoft_products` table.
 
 # Notes
 
