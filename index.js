@@ -84,7 +84,8 @@ var sendCustomersToAPI = function(customerObject) {
 
 /**
  * Update customer data in local database
- * @param {object} database MySQL database connection
+ * @param {object} customerObject customer data from MySQL
+ * @param {object} shopifyData    customer data from Shopify
  */
 var updateLocalCustomerData = function(customerObject, shopifyData) {
     if (customerObject && shopifyData) {
