@@ -1,13 +1,13 @@
 var config = {
     general: {
-        queryLimit: 10, // how many rows to limit the MySQL query to
+        queryLimit: 10, // how many rows to limit the customers MySQL query to
         timezone: '-05:00' // timezone of Infusionsoft customers/orders relative to UTC; example: -04:00
     },
     shopify: {
         shop: 'your-store', // subdomain only
         shopfiy_api_key: 'your API key', // API key
         access_token: 'your API password', // API password
-        verbose: true, // set to false to suppres headers and responses
+        verbose: true, // set to false to suppress headers and responses
         rate_limit_delay: 10000, // delay in milliseconds if Shopify returns a 429 response code
         backoff: 35, // limit to X of 40 API calls; default is 35 out of 40 API calls
         backoff_delay: 1000 // wait this many milliseconds if backoff option is exceeded
