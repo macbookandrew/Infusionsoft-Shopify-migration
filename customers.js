@@ -3,7 +3,7 @@ var config = require('./config'),
     events = require('events'),
     eventEmitter = new events.EventEmitter(),
     mysql = require('mysql'),
-    localDatabase = mysql.createConnection(config.mysql),
+    localDatabase = mysql.createPool(config.mysql),
     shopifyAPI = require('shopify-node-api'),
     Shopify = new shopifyAPI(config.shopify),
     customerQueryString = 'SELECT `contacts`.`First Name` AS first_name, `contacts`.`Last Name` AS last_name, `contacts`.`Email` AS email, REPLACE(REPLACE(`Phone 1`, "    (Mobile)", ""), "    (Work)", "") AS phone, "true" AS verified_email, "true" as accepts_marketing, COUNT(`orders`.`Id`) AS orders_count, SUM(`orders`.`Order Total`) AS total_spent, DATE_FORMAT(`Date Created`, "%Y-%m-%dT%T'+config.general.timezone+'") AS created_at, DATE_FORMAT(`Last Updated`, "%Y-%m-%dT%T'+config.general.timezone+'") AS updated_at, `contacts`.`Street Address 1` AS address1_address1, `contacts`.`Street Address 2` AS address1_address2, `contacts`.`City` AS address1_city, `contacts`.`State` AS address1_state, `contacts`.`Postal Code` AS address1_zip, `contacts`.`Country` AS address1_country, `contacts`.`Street Address 1 (Shipping)` AS address2_address1, `contacts`.`Street Address 2 (Shipping)` AS address2_address2, `contacts`.`City (Shipping)` AS address2_city, `contacts`.`State (Shipping)` AS address2_state, `contacts`.`Postal Code (Shipping)` AS address2_zip, `contacts`.`Country (Shipping)` AS address2_country, `contacts`.`Id` AS infusionsoft_id FROM `infusionsoft_contacts` `contacts` JOIN `infusionsoft_orders` `orders` on `orders`.`contactId` = `contacts`.`Id` WHERE `contacts`.`shopify_id` IS NULL AND `contacts`.`shopify_notes` IS NULL GROUP BY `contacts`.`Id` LIMIT '+config.general.queryLimit+';';
@@ -13,15 +13,23 @@ var config = require('./config'),
  * @param {object} database MySQL database connection
  */
 var getCustomerData = function(database) {
-    var customerQuery = localDatabase.query(customerQueryString);
-    customerQuery.on('error', function(error) {
-        console.error(error);
-    });
-    customerQuery.on('result', function(row) {
-        customerObject = {
-            "customer": formatAddresses(row)
-        };
-        sendCustomersToAPI(customerObject);
+    var pool = localDatabase.getConnection(function(error, customerConnection) {
+        var customerQuery = customerConnection.query(customerQueryString);
+        customerQuery.on('error', function(error) {
+            console.error(error);
+        });
+        customerQuery.on('result', function(row) {
+            customerObject = {
+                "customer": formatAddresses(row)
+            };
+            sendCustomersToAPI(customerObject);
+        });
+        customerQuery.on('end', function() {
+            customerConnection.release();
+            if (error) {
+                throw error;
+            }
+        });
     });
 }
 
@@ -110,13 +118,22 @@ var getShopifyId = function(customerObject) {
 var updateLocalCustomerData = function(customerObject, shopifyCustomer) {
     if (customerObject && shopifyCustomer) {
         var infusionsoftId = customerObject.customer.infusionsoft_id,
-            shopifyId = shopifyCustomer.id,
-            updateCustomer = localDatabase.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+shopifyId+'" WHERE `Id` = "'+infusionsoftId+'"');
-        updateCustomer.on('error', function(error) {
-            console.error(error);
-        });
-        updateCustomer.on('result', function(row) {
-            console.log('Customer '+infusionsoftId+' updated with Shopify ID '+shopifyId+'.');
+            shopifyId = shopifyCustomer.id;
+
+        localDatabase.getConnection(function (error, updateConnection) {
+            var updateCustomer = updateConnection.query('UPDATE `infusionsoft_contacts` SET `shopify_id` = "'+shopifyId+'" WHERE `Id` = "'+infusionsoftId+'"');
+            updateCustomer.on('error', function(error) {
+                console.error(error);
+            });
+            updateCustomer.on('result', function(row) {
+                console.log('Customer '+infusionsoftId+' updated with Shopify ID '+shopifyId+'.');
+            });
+            updateCustomer.on('end', function() {
+                updateConnection.release();
+                if (error) {
+                    throw error;
+                }
+            });
         });
     }
 }
@@ -158,9 +175,6 @@ var exitHandler = function(error, options) {
     }
 }
 
-//TODO: update customer last_order_id with latest Shopify order ID
-
-localDatabase.connect();
 getCustomerData(localDatabase);
 eventEmitter.on('shopifyAdded', function(customerObject, shopifyCustomer) {
     updateLocalCustomerData(customerObject, shopifyCustomer)
