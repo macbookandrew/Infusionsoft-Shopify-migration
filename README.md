@@ -42,6 +42,7 @@ It also optionally pulls info from a WooCommerce installation, as long as the sa
 7. Run `$ node customers.js` to start importing customers. I recommend you keep the `config.general.queryLimit` parameter fairly low (5–10) and run the script once or twice and double-check the results. Then bump it up to a few hundred or thousand and run as many times as necessary to finish importing all your contacts.
 8. Go back through the `infusionsoft_contacts` database and fix everything you can in the `shopify_notes` field, and then re-run `$ node customers.js` to finish importing customers.
     - Take a look at `SQL/suggested-cleanup.sql` as for some suggested cleanup actions, and then manually fix other issues you see in your database.
+9. Run `$ node orders-woocommerce.js` to start the order import
 
 # Notes
 
