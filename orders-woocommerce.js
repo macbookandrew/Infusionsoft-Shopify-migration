@@ -85,6 +85,10 @@ var getOrders = function(database) {
     });
 }
 
+/**
+ * Get order data
+ * @param {object} orders row with customer data
+ */
 var getOrderData = function(orders) {
     var pool = localDatabase.getConnection(function(error, orderDataConnection) {
         var orderDataQuery = orderDataConnection.query(orderDataQueryString+'AND p.ID IN ('+orders.woocommerce_orders+') GROUP BY p.ID;');
