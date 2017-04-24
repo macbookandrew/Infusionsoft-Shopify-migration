@@ -24,6 +24,7 @@ var config = require('./config'),
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS created_at, \
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS closed_at, \
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS processed_at, \
+            (SELECT shopify_id FROM infusionsoft_contacts `contacts` WHERE `contacts`.`id` = `orders`.`ContactId`) AS customer_id, \
             max( CASE WHEN pm.meta_key = "_billing_email" AND p.ID = pm.post_id THEN pm.meta_value END ) AS email, \
             max( CASE WHEN pm.meta_key = "_billing_email" AND p.ID = pm.post_id THEN pm.meta_value END ) AS billing_email, \
             max( CASE WHEN pm.meta_key = "_billing_first_name" AND p.ID = pm.post_id THEN pm.meta_value END ) AS billing_first_name, \
@@ -187,6 +188,11 @@ var formatOrderData = function(row) {
     ];
     delete row.shipping_lines_price;
     delete row.shipping_lines_title;
+
+    row.customer = {
+        "id": row.customer_id
+    };
+    delete row.customer_id;
 
     return row;
 }
