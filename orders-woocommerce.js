@@ -19,8 +19,6 @@ var config = require('./config'),
             p.ID AS order_number, \
             CONCAT("WooCommerce order WC-",p.ID,"; Infusionsoft order ",max( CASE WHEN pm.meta_key = "infusionsoft_order_id" AND p.ID = pm.post_id THEN pm.meta_value END )) AS note, \
             "fulfilled" AS fulfillment_status, \
-            "false" AS send_receipt, \
-            "false" AS send_fulfillment_receipt, \
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS created_at, \
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS closed_at, \
             DATE_FORMAT(post_date, "%Y-%m-%dT%T'+config.general.timezone+'") AS processed_at, \
