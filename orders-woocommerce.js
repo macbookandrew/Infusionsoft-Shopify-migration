@@ -231,7 +231,7 @@ var sendOrderDataToAPI = function(orderDataObject) {
                 console.error(error);
             });
             updateOrder.on('result', function(row) {
-                console.log('Order '+woocommerceOrderId+' updated with Shopify ID '+shopifyId+'.');
+                console.log('WooCommerce order '+woocommerceOrderId+' updated with Shopify ID '+shopifyId);
             });
             updateOrder.on('end', function() {
                 updateConnection.release();
