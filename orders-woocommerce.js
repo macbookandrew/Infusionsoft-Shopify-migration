@@ -59,7 +59,8 @@ var config = require('./config'),
             JOIN infusionsoft_orders orders ON orders.woocommerce_order_id = p.ID  \
         WHERE \
             orders.shopify_id IS NULL AND \
-            orders.shopify_notes IS NULL ';
+            orders.shopify_notes IS NULL AND \
+            orders.woocommerce_order_id IS NOT NULL ';
 
 /**
  * Get orders
@@ -94,7 +95,6 @@ var getOrderData = function(orders) {
             console.error(error);
         });
         orderDataQuery.on('result', function(row) {
-
             orderDataObject = {
                 "order": formatOrderData(row)
             };
