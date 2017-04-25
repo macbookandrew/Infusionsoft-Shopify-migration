@@ -209,7 +209,7 @@ var sendOrderDataToAPI = function(orderDataObject) {
         if (error) {
             eventEmitter.emit('shopifyOtherError', orderDataObject, data);
         } else {
-            console.info('added to Shopify: '+data.order.id);
+            console.info('WooCommerce order '+orderDataObject.order.woocommerce_order_id+' added to Shopify: '+data.order.id);
             eventEmitter.emit('shopifyAdded', orderDataObject, data.order);
         }
     });
@@ -257,7 +257,7 @@ var sendOrderDataToAPI = function(orderDataObject) {
             console.error(error);
         });
         updateOrder.on('result', function(row) {
-            console.log('Order '+woocommerceOrderId+' updated with Shopify error notes.');
+            console.log('WooCommerce order '+woocommerceOrderId+' updated with Shopify error notes.');
         });
     }
 }
