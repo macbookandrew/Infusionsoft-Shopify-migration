@@ -161,35 +161,37 @@ var formatOrderData = function(row) {
     delete row.shipping_country_code;
     delete row.shipping_company;
 
-    var line_item_ids = row.line_items_ids.split('|'),
-        line_item_titles = row.line_items_titles.split('|'),
-        line_item_variant_ids = row.line_items_variant_ids.split('|'),
-        line_item_prices = row.line_items_prices.split('|'),
-        line_item_quantities = row.line_items_quantities.split('|');
+    if (typeof row.line_items_ids === "string" && typeof row.line_items_titles === "string" && typeof row.line_items_variant_ids === "string") {
+        var line_item_ids = row.line_items_ids.split('|'),
+            line_item_titles = row.line_items_titles.split('|'),
+            line_item_variant_ids = row.line_items_variant_ids.split('|'),
+            line_item_prices = row.line_items_prices.split('|'),
+            line_item_quantities = row.line_items_quantities.split('|');
 
-    row.line_items = [];
-    for (i in line_item_titles) {
-        row.line_items.push({
-            "id": line_item_ids[i],
-            "title": line_item_titles[i],
-            "variant_id": line_item_variant_ids[i],
-            "price": line_item_prices[i],
-            "quantity": line_item_quantities[i]
-        });
-    }
-    delete row.line_items_ids;
-    delete row.line_items_titles;
-    delete row.line_items_variant_ids;
-    delete row.line_items_prices;
-
-    row.shipping_lines = [
-        {
-            "price": row.shipping_lines_price,
-            "title": row.shipping_lines_title
+        row.line_items = [];
+        for (i in line_item_titles) {
+            row.line_items.push({
+                "id": line_item_ids[i],
+                "title": line_item_titles[i],
+                "variant_id": line_item_variant_ids[i],
+                "price": line_item_prices[i],
+                "quantity": line_item_quantities[i]
+            });
         }
-    ];
-    delete row.shipping_lines_price;
-    delete row.shipping_lines_title;
+        delete row.line_items_ids;
+        delete row.line_items_titles;
+        delete row.line_items_variant_ids;
+        delete row.line_items_prices;
+
+        row.shipping_lines = [
+            {
+                "price": row.shipping_lines_price,
+                "title": row.shipping_lines_title
+            }
+        ];
+        delete row.shipping_lines_price;
+        delete row.shipping_lines_title;
+    }
 
     row.customer = {
         "id": row.customer_id
