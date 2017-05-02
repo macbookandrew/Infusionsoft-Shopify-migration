@@ -90,6 +90,7 @@ var getOrders = function(database) {
  */
 var getOrderData = function(orders) {
     var pool = localDatabase.getConnection(function(error, orderDataConnection) {
+//        console.log(orderDataQueryString+'AND p.ID IN ('+orders.woocommerce_orders+') GROUP BY p.ID;');
         var orderDataQuery = orderDataConnection.query(orderDataQueryString+'AND p.ID IN ('+orders.woocommerce_orders+') GROUP BY p.ID;');
         orderDataQuery.on('error', function(error) {
             console.error(error);
@@ -161,7 +162,7 @@ var formatOrderData = function(row) {
     delete row.shipping_country_code;
     delete row.shipping_company;
 
-    if (typeof row.line_items_ids === "string" && typeof row.line_items_titles === "string" && typeof row.line_items_variant_ids === "string") {
+    if (typeof row.line_items_ids === "string" && typeof row.line_items_titles === "string" && typeof row.line_items_variant_ids === "string" && typeof row.line_items_quantities === "string") {
         var line_item_ids = row.line_items_ids.split('|'),
             line_item_titles = row.line_items_titles.split('|'),
             line_item_variant_ids = row.line_items_variant_ids.split('|'),
