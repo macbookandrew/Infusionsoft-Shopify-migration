@@ -213,10 +213,14 @@ var sendOrderDataToAPI = function(orderDataObject) {
  * @param {object} shopifyData     order data from Shopify
  */
  var addShopifyErrorNote = function(orderDataObject, shopifyData) {
-	console.log('error note: ');console.log(JSON.stringify(shopifyData));
+	var errorMessage = JSON.stringify(shopifyData),
+		orderId = orderDataObject.order.id;
+	console.log('error note for order '+orderId+': ');console.log(errorMessage);
 	if (orderDataObject && shopifyData) {
-		var orderId = orderDataObject.order.id,
-			updateOrder = localDatabase.query('UPDATE `infusionsoft_orders` SET `shopify_notes` = "'+localDatabase.escape(JSON.stringify(shopifyData))+'" WHERE `id` = "'+orderId+'"');
+		if (typeof errorMessage === 'undefined') {
+			errorMessage = 'undefined error';
+		}
+		var updateOrder = localDatabase.query('UPDATE `infusionsoft_orders` SET `shopify_notes` = "'+localDatabase.escape(errorMessage)+'" WHERE `id` = "'+orderId+'"');
 		updateOrder.on('error', function(error) {
 			console.error(error);
 		});
