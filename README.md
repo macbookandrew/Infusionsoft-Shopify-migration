@@ -44,6 +44,8 @@ It also optionally pulls info from a WooCommerce installation, as long as the sa
     - Take a look at `SQL/suggested-cleanup.sql` as for some suggested cleanup actions, and then manually fix other issues you see in your database.
 9. If importing WooCommerce data, run `$ node orders-woocommerce.js` first to start the order import
 10. Run `$ node orders.js` to import the orders
+11. Run `SQL/wrapup.sql` to prepare the `infusionsoft_contacts` table
+12. Run `$ node wrapup.js` to update cutomer info with the last order ID and total dollar amount spent
 
 # Notes
 
